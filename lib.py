@@ -1,4 +1,4 @@
-import math, re
+import io, math, re, json, csv
 from numbers import Number
 from dataclasses import dataclass
 from functools import total_ordering
@@ -167,6 +167,20 @@ class Report:
             'items': list(self.items_split_qty),
             'shared_cost': self.shared_cost,
         }
+
+    def to_csv(self, output=None):
+        write_to_str = output is None
+        if write_to_str:
+            output = io.StringIO()
+
+        writer = csv.writer(output, delimiter=',')
+        writer.writerow(["Shared cost", self.shared_cost])
+        writer.writerow(["Name", "Qty", "Price"])
+        for item in self.items_split_qty:
+            writer.writerow([item.name.replace(",",""), item.qty, item.price])
+
+        if write_to_str:
+            return output.getvalue()
 
     # List each item i.qty times
     @property

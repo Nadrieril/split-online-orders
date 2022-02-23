@@ -5,4 +5,4 @@ I have a Google Sheet spreadsheet with boxes to split the expense,
 but the hard bit is extracting the list of items and prices from whatever format
 the shop uses.
 
-This repo contains scripts for that (for now only Waitrose).
+This repo contains scripts for that.

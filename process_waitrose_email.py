@@ -96,10 +96,4 @@ def parse_waitrose_eml_file(path):
 
 if __name__ == "__main__":
     report = parse_waitrose_eml_file(sys.argv[1])
-    # print(json.dumps(report, **JSON_ARGS))
-    writer = csv.writer(sys.stdout, delimiter=',')
-    writer.writerow(["Shared cost", report.shared_cost])
-    writer.writerow(["Name", "Qty", "Price"])
-    for item in report.items_split_qty:
-        writer.writerow([item.name, item.qty, item.price])
-
+    report.to_csv(sys.stdout)
