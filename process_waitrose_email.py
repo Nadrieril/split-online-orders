@@ -55,35 +55,56 @@ def parse_waitrose_html(html: str) -> Report:
     order_summary_headers = document.find_all(text=re.compile('Order Summary'))
     assert(len(order_summary_headers) == 1)
     summary_table = order_summary_headers[0].find_parent('table')
-    def table_entry(name):
-        return summary_table.find(text=re.compile(name)).parent.find_next_sibling('td').string
 
-    vouchers = summary_table.find(text=re.compile('Promotion Discount:')).find_parent('tr')
-    vouchers = vouchers.find_next_sibling('tr').find_next_sibling('tr')
-    vouchers = vouchers.find(text=amount_parser.regex)
-    vouchers = Amount(vouchers)
+    # It's not semantically formatted. We have to iterate through in order to get the info.
+    discounts = 0
+    currently_listing_savings = False
+    currently_listing_discounts = False
+    for entry in summary_table.find_all('tr'):
+        entry_name = entry.find('td').string.strip()
+        get_contents = lambda: entry.find('td').find_next_sibling('td').string.strip()
+        match entry_name:
+            case "Order Summary":
+                pass
+            case "Number of Items:":
+                total_qty = int(get_contents())
+            case "Subtotal:":
+                subtotal = Amount(get_contents())
+            case "Your savings":
+                currently_listing_savings = True
+            case "Promotion Discount:":
+                currently_listing_discounts = True
+            case "":
+                amt = Amount(get_contents())
+                if currently_listing_savings or currently_listing_discounts:
+                    discounts += amt
+                    currently_listing_savings = False
+                    currently_listing_discounts = False
+                else:
+                    raise Exception(f"Dunno what this amount corresponds to: {amt}")
+            case "Offers:":
+                offers = Amount(get_contents())
+                # Offers are already counted in the item prices but are counted in savings, so we
+                # avoid double-counting here.
+                discounts -= offers
+            case "Delivery:":
+                delivery = Amount(get_contents())
+            case "Total:":
+                total = Amount(get_contents())
+            case _:
+                if not (currently_listing_discounts or currently_listing_savings):
+                    raise Exception(f"Dunno what this corresponds to: {entry_name}")
 
-    delivery = table_entry('Delivery:')
-    delivery = Amount(delivery)
-
-    report = Report(items=items, shared_cost=vouchers+delivery)
+    report = Report(items=items, shared_cost=discounts+delivery)
 
     # Check totals to be sure we didn't fail to parse anything.
-    total_qty = table_entry('Number of Items:')
-    total_qty = int(total_qty.strip())
     assert(total_qty == report.total_item_qty)
 
-    subtotal = table_entry('Subtotal:')
-    subtotal = Amount(subtotal)
     assert(subtotal == report.total_item_price_without_discounts)
 
-    offers = table_entry('Offers:')
-    offers = Amount(offers)
     assert(offers == report.total_item_discounts)
     assert(subtotal + offers == report.total_item_price)
 
-    total = table_entry('Total:')
-    total = Amount(total)
     assert(total == report.total_price)
 
     return report

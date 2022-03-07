@@ -70,6 +70,8 @@ class Amount:
         return self + other
     def __sub__(self, other):
         return self + (-other)
+    def __rsub__(self, other):
+        return (-self) + other
     def __neg__(self):
         return Amount(-self.quantity, self.currency)
     def __truediv__(self, other):
