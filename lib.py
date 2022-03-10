@@ -176,10 +176,10 @@ class Report:
             output = io.StringIO()
 
         writer = csv.writer(output, delimiter=',')
-        writer.writerow(["Shared cost", self.shared_cost])
+        writer.writerow(["Shared cost", self.shared_cost.quantity])
         writer.writerow(["Name", "Qty", "Price"])
         for item in self.items_split_qty:
-            writer.writerow([item.name.replace(",",""), item.qty, item.price])
+            writer.writerow([item.name.replace(",",""), item.qty, item.price.quantity])
 
         if write_to_str:
             return output.getvalue()
