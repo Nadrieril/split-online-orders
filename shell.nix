@@ -10,6 +10,7 @@ pkgs.mkShell {
     (python310.withPackages (ps: with ps; [
       beautifulsoup4
       pdftotext
+      google-api-python-client google-auth-httplib2 google-auth-oauthlib
     ]))
   ];
 }

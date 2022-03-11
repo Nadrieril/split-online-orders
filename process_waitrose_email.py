@@ -117,4 +117,4 @@ def parse_waitrose_eml_file(path):
 
 if __name__ == "__main__":
     report = parse_waitrose_eml_file(sys.argv[1])
-    report.to_csv(sys.stdout)
+    report.upload_to_google_sheets()

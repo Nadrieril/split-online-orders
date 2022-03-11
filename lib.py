@@ -1,8 +1,10 @@
-import io, math, re, json, csv
+import os, sys, io, math, re, json, csv
 from numbers import Number
 from dataclasses import dataclass
 from functools import total_ordering
 from typing import List, Optional
+
+from google_sheets import login_to_google_api, setup_new_input_data
 
 class AmountParser:
     def __init__(self):
@@ -183,6 +185,22 @@ class Report:
 
         if write_to_str:
             return output.getvalue()
+
+    def upload_to_google_sheets(self):
+        data = []
+        data.append(["Shared cost", self.shared_cost.quantity])
+        data.append(["Name", "Qty", "Price"])
+        for item in self.items_split_qty:
+            data.append([item.name.replace(",",""), item.qty, item.price.quantity])
+
+        writer = csv.writer(sys.stdout, delimiter=',')
+        for row in data:
+            writer.writerow(row)
+
+        print()
+        print(f"Uploading to Google Sheets...")
+        service = login_to_google_api()
+        setup_new_input_data(service, data)
 
     # List each item i.qty times
     @property
