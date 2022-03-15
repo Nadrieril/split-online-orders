@@ -58,6 +58,7 @@ def parse_waitrose_html(html: str) -> Report:
 
     # It's not semantically formatted. We have to iterate through in order to get the info.
     discounts = 0
+    offers = 0
     currently_listing_savings = False
     currently_listing_discounts = False
     for entry in summary_table.find_all('tr'):
@@ -84,8 +85,8 @@ def parse_waitrose_html(html: str) -> Report:
                     raise Exception(f"Dunno what this amount corresponds to: {amt}")
             case "Offers:":
                 offers = Amount(get_contents())
-                # Offers are already counted in the item prices but are counted in savings, so we
-                # avoid double-counting here.
+                # Offers are already counted in the item prices but are listed under "Your savings",
+                # so we avoid double-counting here.
                 discounts -= offers
             case "Delivery:":
                 delivery = Amount(get_contents())
